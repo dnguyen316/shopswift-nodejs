@@ -2,7 +2,9 @@
 
 const shopModel = require("../models/shop.model");
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
+// const crypto = require("crypto");
+// In NodeJS ver.19+ also include crypto
+const crypto = require("node:crypto");
 const KeyTokenService = require("./keyToken.service");
 const { createTokenPair } = require("../auth/authUtils");
 const { getInfoData } = require("../utils");
@@ -40,40 +42,53 @@ class AccessService {
 
       if (newShop) {
         // created privateKey, publicKey
-        // Public key CryptoGraphy Standards !
 
-        const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
-          modulusLength: 4096,
-          publicKeyEncoding: {
-            type: "pkcs1",
-            format: "pem",
-          },
-          privateKeyEncoding: {
-            type: "pkcs1",
-            format: "pem",
-          },
-        });
+        // Public key CryptoGraphy Standards !
+        /**
+         * RSA Algorithm for Sign-up Service
+         * This approach would be use for complex and robust secure in big system such as Google Cloud or Amazon
+         * with this way, we would create the publicKeyString and store it on DB and just only it (doesn't have the private key and the DB as well).
+         * using this method: publicKeyObject = crypto.createPublicKey(publicKeyString) to convert publicKeyObject and then pass it to function createTokenPair instead of normal public key
+         */
+        // const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+        //   modulusLength: 4096,
+        //   publicKeyEncoding: {
+        //     type: "pkcs1",
+        //     format: "pem",
+        //   },
+        //   privateKeyEncoding: {
+        //     type: "pkcs1",
+        //     format: "pem",
+        //   },
+        // });
+
+        /**
+         * This approach below would be more simplifier for small e-commerce project
+         */
+        const privateKey = crypto.randomBytes(64).toString("hex");
+        const publicKey = crypto.randomBytes(64).toString("hex");
 
         console.log({ privateKey, publicKey }); //save to collection KeyStore
-        const publicKeyString = await KeyTokenService.createKeyToken({
+        const keyStore = await KeyTokenService.createKeyToken({
           userId: newShop._id,
           publicKey,
+          privateKey,
         });
-        console.log("publicKeyString::", publicKeyString);
 
-        if (!publicKeyString) {
+        if (!keyStore) {
           return {
             code: "xxxx",
-            message: "publicKeyString error",
+            message: "keyStore error",
           };
         }
 
-        const publicKeyObject = crypto.createPublicKey(publicKeyString);
-        console.log(`publicKeyObject::`, publicKeyObject);
+        // const publicKeyObject = crypto.createPublicKey(publicKeyString);
+        // console.log(`publicKeyObject::`, publicKeyObject);
+
         // created token pair
         const tokens = await createTokenPair(
           { userId: newShop._id, email },
-          publicKeyObject,
+          publicKey,
           privateKey
         );
         console.log(`Created Token Success::`, tokens);
