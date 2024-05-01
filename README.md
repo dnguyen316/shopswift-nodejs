@@ -25,3 +25,8 @@ to see the difference when apply it
 <!-- Compression package -->
 
 Using for compression the data server
+
+<!-- Check Router Secure -->
+
+We must have the apiKey and check the apiKey and also the permission of this key in the api was called in
+With this approach, it would be make sure that the api was called securely

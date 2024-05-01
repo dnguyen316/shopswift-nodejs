@@ -4,7 +4,7 @@ const { default: helmet } = require("helmet");
 const morgan = require("morgan");
 const compression = require("compression");
 const app = express();
-console.log("Process", process.env.DEV_APP_PORT);
+
 // init middlewares
 app.use(morgan("dev"));
 app.use(helmet());
@@ -15,6 +15,7 @@ app.use(
     extended: true,
   })
 );
+
 // init db
 require("./dbs/init.mongodb");
 // const { checkOverload } = require("./helpers/check.connect");
