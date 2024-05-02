@@ -21,9 +21,14 @@ const keyTokenSchema = new Schema(
       type: String,
       required: true,
     },
-    refreshToken: {
+    refreshTokensUsed: {
+      // Purpose to track trace all the tokens was used
       type: Array,
       default: [],
+    },
+    refreshToken: {
+      type: String,
+      required: true,
     },
   },
   {
