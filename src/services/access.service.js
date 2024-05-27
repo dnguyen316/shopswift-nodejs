@@ -6,9 +6,13 @@ const bcrypt = require("bcryptjs");
 // In NodeJS ver.19+ also include crypto
 const crypto = require("node:crypto");
 const KeyTokenService = require("./keyToken.service");
-const { createTokenPair } = require("../auth/authUtils");
+const { createTokenPair, verifyJWT } = require("../auth/authUtils");
 const { getInfoData } = require("../utils");
-const { BadRequestError, AuthFailureError } = require("../core/error.response");
+const {
+  BadRequestError,
+  AuthFailureError,
+  ForbiddenError,
+} = require("../core/error.response");
 const { findByEmail } = require("./shop.service");
 
 const RoleShop = {
@@ -20,6 +24,59 @@ const RoleShop = {
 
 class AccessService {
   /**
+   * Function handle checking that refresh token used or not. If it's used, checking the user information
+   * @param {String} refreshToken
+   */
+
+  static handleRefreshToken = async ({ keyStore, user, refreshToken }) => {
+    const { userId, email } = user;
+    console.log(`[2]---`, userId, email);
+
+    if (keyStore.refreshTokensUsed.includes(refreshToken)) {
+      await KeyTokenService.deleteKeyById(userId);
+      throw new ForbiddenError("Forbidden Access! Please re-login again");
+    }
+
+    if (keyStore.refreshToken !== refreshToken)
+      throw new AuthFailureError("Shop not registered");
+
+    //check userId
+    const foundShop = await findByEmail({ email });
+    if (!foundShop) throw new AuthFailureError("Shop not registered");
+
+    //create new token
+    const tokens = await createTokenPair(
+      { userId, email },
+      keyStore.publicKey,
+      keyStore.privateKey
+    );
+
+    //update new token
+    const updateResult = await keyStore.updateOne({
+      $set: {
+        refreshToken: tokens.refreshToken,
+      },
+      $addToSet: {
+        refreshTokensUsed: refreshToken,
+      },
+    });
+
+    console.log("[3]--", updateResult);
+
+    return {
+      user,
+      tokens,
+    };
+  };
+
+  static logout = async (keyStore) => {
+    const deleteKey = await KeyTokenService.removeKeyById(keyStore._id);
+    console.log({ deleteKey });
+    return deleteKey;
+  };
+
+  /**
+   * Login Service
    * 1 - check email in dbs
    * 2 - match password
    * 3 - create accessToken vs refreshToken and save

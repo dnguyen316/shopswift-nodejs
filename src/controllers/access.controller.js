@@ -20,6 +20,25 @@ class AccessController {
       metadata: await AccessService.signUp(req.body),
     }).send(res);
   };
+  logout = async (req, res, next) => {
+    console.log(`[P]::logout::`, req.body);
+
+    new SuccessResponse({
+      message: "Logout success!",
+      metadata: await AccessService.logout(req.keyStore),
+    }).send(res);
+  };
+
+  handleRefreshToken = async (req, res, next) => {
+    new SuccessResponse({
+      message: "Get Token Success!",
+      metadata: await AccessService.handleRefreshToken({
+        refreshToken: req.body.refreshToken,
+        user: req.user,
+        keyStore: req.keyStore,
+      }),
+    }).send(res);
+  };
 }
 
 module.exports = new AccessController();
