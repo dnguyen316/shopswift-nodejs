@@ -3,9 +3,11 @@ const { SuccessResponse } = require("../core/success.response");
 
 class ProductController {
   createProduct = async (req, res, next) => {
+    const product_type = req.body.product_type;
+
     new SuccessResponse({
       message: "Create new Product success!",
-      metadata: await ProductService.createProduct(req.body.product_type, {
+      metadata: await ProductService.createProduct(product_type, {
         ...req.body,
         product_shop: req.user.userId,
       }),
@@ -28,6 +30,19 @@ class ProductController {
       metadata: await ProductService.unPublishProductByShop({
         product_shop: req.user.userId,
         product_id: req.params.id,
+      }),
+    }).send(res);
+  };
+
+  updateProduct = async (req, res, next) => {
+    const product_type = req.body.product_type;
+    const product_id = req.params.product_id;
+
+    new SuccessResponse({
+      message: "update product success!",
+      metadata: await ProductService.updateProduct(product_type, product_id, {
+        ...req.body,
+        product_shop: req.user.userId,
       }),
     }).send(res);
   };
