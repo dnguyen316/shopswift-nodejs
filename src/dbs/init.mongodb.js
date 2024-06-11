@@ -23,7 +23,6 @@ class Database {
   connect(type = "mongodb") {
     // dev env
     if (1 === 1) {
-      mongoose.set("debug", true);
       mongoose.set("debug", { color: true });
     }
 

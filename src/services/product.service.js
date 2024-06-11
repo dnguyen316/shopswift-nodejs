@@ -7,6 +7,7 @@ const {
   electronic,
   furniture,
 } = require("../models/product.model");
+const { insertInventory } = require("../models/repositories/inventory.repo");
 
 const {
   findAllDraftsForShop,
@@ -129,7 +130,17 @@ class Product {
 
   // create new product
   async createProduct(product_id) {
-    return await product.create({ ...this, _id: product_id });
+    const newProduct = await product.create({ ...this, _id: product_id });
+    if (newProduct) {
+      // Add product_stock in inventory collection
+      await insertInventory({
+        productId: newProduct._id,
+        shopId: this.product_shop,
+        stock: this.product_quantity,
+      });
+
+      return newProduct;
+    }
   }
 
   // update exist product
@@ -145,20 +156,21 @@ class Product {
 //Define sub-class for different product types Clothing
 class Clothing extends Product {
   async createProduct() {
-    const newClothing = await clothing.create(this.product_attributes);
+    const newClothing = await clothing.create({
+      ...this.product_attributes,
+      product_shop: this.product_shop,
+    });
     if (!newClothing) throw new BadRequestError("Create new Clothing error");
 
-    const newProduct = await super.createProduct();
+    const newProduct = await super.createProduct(newClothing._id);
     if (!newProduct) throw new BadRequestError("Create new Product error");
 
     return newProduct;
   }
 
   async updateProduct(product_id) {
-    console.log(`[1]::`, this);
     //1. remove attr has null undefined
     const objectParams = removeUndefinedObject(this);
-    console.log(`[2]::`, this);
 
     //2. check update in which location ?
     if (objectParams.product_attributes) {
