@@ -1,4 +1,6 @@
-- Bug
+1. Bug
+
+- Product Service
 
   ## Update Product by Shop
 
@@ -9,3 +11,11 @@
   [ ] As a developer, when I update the product_attribute for product model, it must be updated in clothing (product_type) model as well.
 
   [ ] As a developer, when the product_attribute's property should not has .
+
+2. Feature
+
+- Discount Service
+
+  ## Update Discount by Shop
+
+  [ ] As a shop owner, I want to update my discount's related information

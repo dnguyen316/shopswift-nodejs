@@ -30,3 +30,13 @@ Using for compression the data server
 
 We must have the apiKey and check the apiKey and also the permission of this key in the api was called in
 With this approach, it would be make sure that the api was called securely
+
+## Discount Service
+
+1. Features
+
+- Generator Discount Code [Shop | Admin]
+- Delete Discount Code [Shop | Admin]
+- Cancel Discount Code [ User ]
+- Get all discount codes [User | Shop]
+- Generator discount amount [ User ]
