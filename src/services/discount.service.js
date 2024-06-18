@@ -1,8 +1,9 @@
 "use strict";
-const { BadRequestError } = require("../core/error.response");
+const { BadRequestError, NotFoundError } = require("../core/error.response");
 const discountModel = require("../models/discount.model");
 const {
   findAllDiscountCodeUnSelect,
+  checkInstanceExists,
 } = require("../models/repositories/discount.repo");
 const { findAllProducts } = require("../models/repositories/product.repo");
 const { convertToObjectIdMongoDB } = require("../utils");
@@ -34,9 +35,9 @@ class DiscountService {
     } = payload;
 
     //Check valid start_date and end_date
-    if (new Date() < new Date(start_date) || new Date() < new Date(end_date)) {
-      throw new BadRequestError("Discount code has expired");
-    }
+    // if (new Date() < new Date(start_date) || new Date() < new Date(end_date)) {
+    //   throw new BadRequestError("Discount code has expired");
+    // }
 
     if (new Date(start_date) >= new Date(end_date)) {
       throw new BadRequestError("Start date must be before end_date");
@@ -150,6 +151,113 @@ class DiscountService {
     });
 
     return discounts;
+  }
+
+  static async getDiscountAmount({ codeId, userId, shopId, products }) {
+    const foundDiscount = await checkInstanceExists({
+      model: discountModel,
+      filter: {
+        code: codeId,
+        shopId: convertToObjectIdMongoDB(shopId),
+      },
+    });
+
+    if (!foundDiscount) throw new NotFoundError("Discount Code do not exist");
+
+    const {
+      is_active,
+      max_applied,
+      start_date,
+      end_date,
+      min_order_value,
+      max_use_per_user,
+      users_used,
+      type: discount_type,
+      value: discount_value,
+    } = foundDiscount;
+
+    if (!is_active) throw new BadRequestError("Discount expired");
+    if (!max_applied) throw new BadRequestError("Discount are out!");
+
+    // if (new Date() < new Date(start_date) || new Date() > new Date(end_date)) {
+    //   throw new BadRequestError("Discount code has expired");
+    // }
+
+    //check
+    let totalOrder = 0;
+    if (min_order_value > 0) {
+      totalOrder = products.reduce((acc, product) => {
+        return acc + product.quantity * product.price;
+      }, 0);
+
+      if (totalOrder < min_order_value) {
+        throw new BadRequestError(
+          `Discount require a minimum order value of ${min_order_value}!`
+        );
+      }
+    }
+
+    if (max_use_per_user > 0) {
+      const isValidUser = users_used.find((user) => user.userId === userId);
+      if (isValidUser) {
+        //... Doing something
+      }
+    }
+
+    //check discount was fixed_amount or percentage
+    const discount_amount =
+      discount_type === "fixed_amount"
+        ? discount_value
+        : totalOrder * (discount_value / 100);
+
+    return {
+      totalOrder,
+      discount: discount_amount,
+      totalPrice: totalOrder - amount,
+    };
+  }
+
+  /**
+   *  This delete discount code function just a mock function that delete directly to the DB.
+   *  In real case, we mustn't do like that. Instead, store that key into another DB to keep track or reverse it
+   *
+   *  we have to check do it has any product use it or not.
+   *
+   */
+  static async deleteDiscountCode({ shopId, codeId }) {
+    //this step just simple handling. We have to firstly find the discount, then delete.
+    //Because of some additional condition or checking required before we delete that discount code
+    const deleted = await discountModel.findOneAndDelete({
+      shopId: convertToObjectIdMongoDB(shopId),
+      code: codeId,
+    });
+
+    return deleted;
+  }
+
+  /** Cancel Discount Code [ User ] */
+  static async cancelDiscountCode({ codeId, shopId, userId }) {
+    const foundDiscount = await checkInstanceExists({
+      model: discount,
+      filter: {
+        code: codeId,
+        shopId: convertToObjectIdMongoDB(shopId),
+      },
+    });
+
+    if (!foundDiscount) throw new NotFoundError("Discount Code do not exist");
+
+    const result = await discountModel.findByIdAndUpdate(foundDiscount._id, {
+      $pull: {
+        users_used: userId,
+      },
+      $inc: {
+        max_applied: 1,
+        used_count: -1,
+      },
+    });
+
+    return result;
   }
 }
 

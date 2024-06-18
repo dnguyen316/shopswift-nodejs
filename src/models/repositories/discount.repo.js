@@ -12,7 +12,7 @@ const findAllDiscountCodeUnSelect = async ({
 }) => {
   const skip = (page - 1) * limit;
   const sortBy = sort === "ctime" ? { _id: -1 } : { _id: 1 };
-  const model = await model
+  const data = await model
     .find(filter)
     .sort(sortBy)
     .skip(skip)
@@ -20,7 +20,7 @@ const findAllDiscountCodeUnSelect = async ({
     .select(unGetSelectData(unSelect))
     .lean();
 
-  return model;
+  return data;
 };
 
 const findAllDiscountCodeSelect = async ({
@@ -33,7 +33,7 @@ const findAllDiscountCodeSelect = async ({
 }) => {
   const skip = (page - 1) * limit;
   const sortBy = sort === "ctime" ? { _id: -1 } : { _id: 1 };
-  const model = await model
+  const data = await model
     .find(filter)
     .sort(sortBy)
     .skip(skip)
@@ -41,10 +41,15 @@ const findAllDiscountCodeSelect = async ({
     .select(getSelectData(select))
     .lean();
 
-  return model;
+  return data;
+};
+
+const checkInstanceExists = async (model, filter) => {
+  return await model.findOne(filter).lean();
 };
 
 module.exports = {
+  checkInstanceExists,
   findAllDiscountCodeSelect,
   findAllDiscountCodeUnSelect,
 };
