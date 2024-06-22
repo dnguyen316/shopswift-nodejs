@@ -40,3 +40,27 @@ With this approach, it would be make sure that the api was called securely
 - Cancel Discount Code [ User ]
 - Get all discount codes [User | Shop]
 - Generator discount amount [ User ]
+
+## Cart Service
+
+- Feature
+
+  ## Add product to Cart [User]
+
+  ## Reduce product quantity [User]
+
+  ## Increase product quantity [User]
+
+  ## Get list to Cart [User]
+
+  ## Delete Cart [User]
+
+  ## Delete Cart item [User]
+
+## Order Service
+
+1. Create New Order [User]
+2. Query Orders [User]
+3. Query Order Using It's ID [User]
+4. Cancel Order [User]
+5. Update Order Status [Admin]

@@ -187,7 +187,8 @@ class DiscountService {
     let totalOrder = 0;
     if (min_order_value > 0) {
       totalOrder = products.reduce((acc, product) => {
-        return acc + product.quantity * product.price;
+        console.log('product_cal::',acc, product)
+        return acc + (product.quantity * product.price)
       }, 0);
 
       if (totalOrder < min_order_value) {
@@ -213,7 +214,7 @@ class DiscountService {
     return {
       totalOrder,
       discount: discount_amount,
-      totalPrice: totalOrder - amount,
+      totalPrice: totalOrder - discount_amount,
     };
   }
 

@@ -1,6 +1,10 @@
 "use strict";
 
-const { getSelectData, unGetSelectData } = require("../../utils");
+const {
+  getSelectData,
+  unGetSelectData,
+  convertToObjectIdMongoDB,
+} = require("../../utils");
 const {
   product,
   electronic,
@@ -102,11 +106,34 @@ const updateProductById = async ({
   });
 };
 
+const getProductById = async (productId) => {
+  return await product
+    .findOne({ _id: convertToObjectIdMongoDB(productId) })
+    .lean();
+};
+
+const checkProductByServer = async (products) => {
+  return await Promise.all(
+    products.map(async (product) => {
+      const foundProduct = await getProductById(product.productId);
+      if (foundProduct) {
+        return {
+          price: foundProduct.product_price,
+          quantity: product.quantity,
+          productId: product.productId,
+        };
+      }
+    })
+  );
+};
+
 module.exports = {
   findProduct,
+  getProductById,
   findAllProducts,
   updateProductById,
   searchProductByUser,
+  checkProductByServer,
   publishProductByShop,
   findAllDraftsForShop,
   unPublishProductByShop,

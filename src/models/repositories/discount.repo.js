@@ -44,7 +44,7 @@ const findAllDiscountCodeSelect = async ({
   return data;
 };
 
-const checkInstanceExists = async (model, filter) => {
+const checkInstanceExists = async ({ model, filter }) => {
   return await model.findOne(filter).lean();
 };
 

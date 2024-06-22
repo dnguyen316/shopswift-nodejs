@@ -77,7 +77,7 @@ const updateNestedObjectParser = (obj) => {
   return final;
 };
 
-const convertToObjectIdMongoDB = (id) => Types.ObjectId(id);
+const convertToObjectIdMongoDB = (id) => new Types.ObjectId(id);
 
 module.exports = {
   getInfoData,
